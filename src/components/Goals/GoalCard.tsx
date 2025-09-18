@@ -48,13 +48,25 @@ export default function GoalCard({ goal, onProgressUpdate }: GoalCardProps) {
         <h4 className="font-semibold text-gray-900 dark:text-white text-lg">
           {goal.title}
         </h4>
-        <span className={cn(
-          'text-xs font-medium px-2 py-1 rounded-full',
-          getStatusColor(goal.status)
-        )}>
-          {goal.status === 'in-progress' ? 'In Progress' : 
-           goal.status === 'completed' ? 'Completed' : 'Pending'}
-        </span>
+        <div className="flex items-center gap-2">
+          <span className={cn(
+            'text-xs font-medium px-2 py-1 rounded-full',
+            getStatusColor(goal.status)
+          )}>
+            {goal.status === 'in-progress' ? 'In Progress' : 
+             goal.status === 'completed' ? 'Completed' : 'Pending'}
+          </span>
+          <button
+            onClick={async () => {
+              await fetch(`/api/goals/${goal.id}`, { method: 'DELETE' })
+              document.dispatchEvent(new CustomEvent('goals:refresh'))
+            }}
+            className="text-gray-400 hover:text-red-600"
+            title="Delete"
+          >
+            <i className="fas fa-trash"></i>
+          </button>
+        </div>
       </div>
 
       {/* Description */}

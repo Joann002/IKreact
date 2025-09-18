@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import MainLayout from '@/components/Layout/MainLayout'
 import ProjectCard from '@/components/Projects/ProjectCard'
 import AddProjectModal from '@/components/Projects/AddProjectModal'
@@ -18,55 +18,32 @@ interface Project {
 
 export default function ProjectsPage() {
   const [showAddModal, setShowAddModal] = useState(false)
-  const [projects, setProjects] = useState<Project[]>([
-    {
-      id: '1',
-      title: 'Website Redesign',
-      description: 'Complete redesign of company website with modern UI/UX principles and responsive design.',
-      progress: 85,
-      status: 'in-progress',
-      dueDate: '2024-02-15',
-      priority: 'high',
-      team: [
-        'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=60&h=60&fit=crop&crop=face',
-        'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=60&h=60&fit=crop&crop=face'
-      ]
-    },
-    {
-      id: '2',
-      title: 'Mobile App Development',
-      description: 'iOS and Android app for customer management and real-time communication.',
-      progress: 60,
-      status: 'in-progress',
-      dueDate: '2024-03-20',
-      priority: 'medium',
-      team: [
-        'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=60&h=60&fit=crop&crop=face'
-      ]
-    },
-    {
-      id: '3',
-      title: 'Database Migration',
-      description: 'Migrate legacy database to new cloud infrastructure with improved performance.',
-      progress: 100,
-      status: 'completed',
-      dueDate: '2024-01-30',
-      priority: 'high',
-      team: [
-        'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=60&h=60&fit=crop&crop=face',
-        'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=60&h=60&fit=crop&crop=face'
-      ]
-    }
-  ])
+  const [projects, setProjects] = useState<Project[]>([])
 
-  const handleAddProject = (projectData: Omit<Project, 'id'>) => {
-    const newProject: Project = {
-      ...projectData,
-      id: Date.now().toString(),
-    }
-    setProjects([...projects, newProject])
+  const handleAddProject = async (projectData: Omit<Project, 'id'>) => {
+    await fetch('/api/projects', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(projectData),
+    })
+    await loadProjects()
     setShowAddModal(false)
   }
+
+  const loadProjects = async () => {
+    const res = await fetch('/api/projects', { cache: 'no-store' })
+    const data = await res.json()
+    // Normalize team from JSON string to array
+    const normalized = data.map((p: any) => ({ ...p, team: JSON.parse(p.team || '[]') }))
+    setProjects(normalized)
+  }
+
+  useEffect(() => {
+    const onRefresh = () => loadProjects()
+    document.addEventListener('projects:refresh', onRefresh as EventListener)
+    loadProjects()
+    return () => document.removeEventListener('projects:refresh', onRefresh as EventListener)
+  }, [])
 
   return (
     <MainLayout>
@@ -104,3 +81,4 @@ export default function ProjectsPage() {
     </MainLayout>
   )
 }
+

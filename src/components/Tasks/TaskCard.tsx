@@ -48,13 +48,23 @@ export default function TaskCard({ task, onStatusChange }: TaskCardProps) {
         <h4 className="font-medium text-gray-900 dark:text-white">
           {task.title}
         </h4>
-        <div className="flex gap-1">
+        <div className="flex gap-2 items-center">
           <span className={cn(
             'text-xs font-medium px-2 py-1 rounded-full',
             getPriorityColor(task.priority)
           )}>
             {task.priority}
           </span>
+          <form action={`/api/tasks/${task.id}`} method="post" onSubmit={async (e) => {
+            e.preventDefault()
+            await fetch(`/api/tasks/${task.id}`, { method: 'DELETE' })
+            // let parent list decide refresh via a custom event
+            document.dispatchEvent(new CustomEvent('tasks:refresh'))
+          }}>
+            <button type="submit" className="text-gray-400 hover:text-red-600" title="Delete">
+              <i className="fas fa-trash"></i>
+            </button>
+          </form>
         </div>
       </div>
 

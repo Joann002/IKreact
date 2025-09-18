@@ -1,6 +1,6 @@
 'use client'
 
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { useAppContext } from '@/contexts/AppContext'
 import { clsx } from 'clsx'
 import { FaBriefcase, FaGamepad, FaSearch, FaBell } from 'react-icons/fa'
@@ -23,7 +23,8 @@ const pageTitle: Record<string, string> = {
 
 export default function Header() {
   const pathname = usePathname()
-  const { currentMode, toggleMode } = useAppContext()
+  const router = useRouter()
+  const { currentMode, setCurrentMode } = useAppContext()
 
   const title = pageTitle[pathname] || 'Dashboard'
 
@@ -39,7 +40,15 @@ export default function Header() {
         <div className="flex items-center gap-4">
           {/* Mode Toggle */}
           <button
-            onClick={toggleMode}
+            onClick={() => {
+              if (currentMode === 'work') {
+                setCurrentMode('leisure')
+                router.push('/leisure/hub')
+              } else {
+                setCurrentMode('work')
+                router.push('/dashboard')
+              }
+            }}
             className={clsx(
               'flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors',
               currentMode === 'work'

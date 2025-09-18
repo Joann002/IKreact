@@ -1,9 +1,9 @@
 import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
+import { Roboto } from 'next/font/google'
 import './globals.css'
 import { AppProvider } from '@/contexts/AppContext'
 
-const inter = Inter({ subsets: ['latin'] })
+const roboto = Roboto({ subsets: ['latin'], weight: ['300','400','500','700','900'] })
 
 export const metadata: Metadata = {
   title: 'Inspira.K - Project Management Dashboard',
@@ -33,7 +33,7 @@ export default function RootLayout({
         <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#6366f1" />
       </head>
-      <body className={inter.className}>
+      <body className={roboto.className}>
         <AppProvider>
           {children}
         </AppProvider>

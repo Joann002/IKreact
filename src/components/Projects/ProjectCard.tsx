@@ -55,6 +55,16 @@ export default function ProjectCard({ project }: ProjectCardProps) {
             {project.status === 'in-progress' ? 'In Progress' : 
              project.status === 'completed' ? 'Completed' : 'Pending'}
           </span>
+          <button
+            onClick={async () => {
+              await fetch(`/api/projects/${project.id}`, { method: 'DELETE' })
+              document.dispatchEvent(new CustomEvent('projects:refresh'))
+            }}
+            className="text-gray-400 hover:text-red-600"
+            title="Delete"
+          >
+            <i className="fas fa-trash"></i>
+          </button>
         </div>
       </div>
 

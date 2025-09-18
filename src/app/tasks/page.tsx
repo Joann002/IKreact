@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import MainLayout from '@/components/Layout/MainLayout'
 import TaskCard from '@/components/Tasks/TaskCard'
 import AddTaskModal from '@/components/Tasks/AddTaskModal'
@@ -17,59 +17,39 @@ interface Task {
 
 export default function TasksPage() {
   const [showAddModal, setShowAddModal] = useState(false)
-  const [tasks, setTasks] = useState<Task[]>([
-    {
-      id: '1',
-      title: 'Design Homepage Layout',
-      description: 'Create wireframes and mockups for the new homepage design',
-      status: 'completed',
-      priority: 'high',
-      dueDate: '2024-01-25',
-      project: 'Website Redesign'
-    },
-    {
-      id: '2',
-      title: 'Implement User Authentication',
-      description: 'Set up login/register functionality with JWT tokens',
-      status: 'in-progress',
-      priority: 'high',
-      dueDate: '2024-02-10',
-      project: 'Mobile App Development'
-    },
-    {
-      id: '3',
-      title: 'Write API Documentation',
-      description: 'Document all REST API endpoints with examples',
-      status: 'pending',
-      priority: 'medium',
-      dueDate: '2024-02-15',
-      project: 'Mobile App Development'
-    },
-    {
-      id: '4',
-      title: 'Database Performance Testing',
-      description: 'Run performance tests on the new database setup',
-      status: 'in-progress',
-      priority: 'medium',
-      dueDate: '2024-02-05',
-      project: 'Database Migration'
-    }
-  ])
+  const [tasks, setTasks] = useState<Task[]>([])
 
-  const handleAddTask = (taskData: Omit<Task, 'id'>) => {
-    const newTask: Task = {
-      ...taskData,
-      id: Date.now().toString(),
-    }
-    setTasks([...tasks, newTask])
+  const handleAddTask = async (taskData: Omit<Task, 'id'>) => {
+    await fetch('/api/tasks', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(taskData),
+    })
+    await loadTasks()
     setShowAddModal(false)
   }
 
-  const handleStatusChange = (taskId: string, newStatus: Task['status']) => {
-    setTasks(tasks.map(task => 
-      task.id === taskId ? { ...task, status: newStatus } : task
-    ))
+  const handleStatusChange = async (taskId: string, newStatus: Task['status']) => {
+    await fetch(`/api/tasks/${taskId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: newStatus }),
+    })
+    await loadTasks()
   }
+
+  const loadTasks = async () => {
+    const res = await fetch('/api/tasks', { cache: 'no-store' })
+    const data: Task[] = await res.json()
+    setTasks(data)
+  }
+
+  useEffect(() => {
+    const onRefresh = () => loadTasks()
+    document.addEventListener('tasks:refresh', onRefresh as EventListener)
+    loadTasks()
+    return () => document.removeEventListener('tasks:refresh', onRefresh as EventListener)
+  }, [])
 
   const groupedTasks = {
     pending: tasks.filter(task => task.status === 'pending'),
@@ -172,3 +152,4 @@ export default function TasksPage() {
     </MainLayout>
   )
 }
+

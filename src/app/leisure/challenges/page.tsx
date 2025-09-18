@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import MainLayout from '@/components/Layout/MainLayout'
 
 interface Challenge {
@@ -18,73 +18,15 @@ interface Challenge {
 }
 
 export default function ChallengesPage() {
-  const [challenges, setChallenges] = useState<Challenge[]>([
-    {
-      id: '1',
-      title: 'Learn TypeScript',
-      description: 'Master TypeScript fundamentals and advanced concepts',
-      type: 'monthly',
-      status: 'completed',
-      progress: 100,
-      targetDate: '2024-01-31',
-      completedDate: '2024-01-28',
-      difficulty: 'medium',
-      category: 'Learning',
-      notes: 'Completed through online courses and practice projects'
-    },
-    {
-      id: '2',
-      title: 'Visit Japan',
-      description: 'Experience Japanese culture, food, and visit Tokyo and Kyoto',
-      type: 'bucket-list',
-      status: 'not-started',
-      progress: 0,
-      difficulty: 'hard',
-      category: 'Travel',
-      notes: 'Planning for 2025 spring season'
-    },
-    {
-      id: '3',
-      title: 'Read 24 Books This Year',
-      description: 'Read 2 books per month throughout the year',
-      type: 'yearly',
-      status: 'in-progress',
-      progress: 25,
-      targetDate: '2024-12-31',
-      difficulty: 'medium',
-      category: 'Reading',
-      notes: 'Currently at 6 books completed'
-    },
-    {
-      id: '4',
-      title: 'Daily Meditation',
-      description: 'Meditate for 10 minutes every day for 30 days',
-      type: 'habit',
-      status: 'in-progress',
-      progress: 60,
-      targetDate: '2024-02-15',
-      difficulty: 'easy',
-      category: 'Health',
-      notes: '18 days completed so far'
-    },
-    {
-      id: '5',
-      title: 'Learn to Cook 5 New Dishes',
-      description: 'Master 5 different cuisines and cooking techniques',
-      type: 'monthly',
-      status: 'in-progress',
-      progress: 40,
-      targetDate: '2024-02-29',
-      difficulty: 'easy',
-      category: 'Cooking',
-      notes: '2 dishes mastered: Ramen and Pasta Carbonara'
-    }
-  ])
+  const [challenges, setChallenges] = useState<Challenge[]>([])
 
-  const handleUpdateChallenge = (challengeId: string, updates: Partial<Challenge>) => {
-    setChallenges(challenges.map(challenge => 
-      challenge.id === challengeId ? { ...challenge, ...updates } : challenge
-    ))
+  const handleUpdateChallenge = async (challengeId: string, updates: Partial<Challenge>) => {
+    await fetch(`/api/challenges/${challengeId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updates),
+    })
+    await loadChallenges()
   }
 
   const groupedChallenges = {
@@ -155,7 +97,7 @@ export default function ChallengesPage() {
               {challenge.title}
             </h4>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 items-center">
             <span className={`text-xs font-medium px-2 py-1 rounded-full ${getDifficultyColor(challenge.difficulty)}`}>
               {challenge.difficulty}
             </span>
@@ -166,6 +108,16 @@ export default function ChallengesPage() {
               {challenge.status === 'not-started' ? 'Not Started' :
                challenge.status === 'in-progress' ? 'In Progress' :
                challenge.status === 'completed' ? 'Completed' : 'Failed'}
+            </button>
+            <button
+              onClick={async () => {
+                await fetch(`/api/challenges/${challenge.id}`, { method: 'DELETE' })
+                document.dispatchEvent(new CustomEvent('challenges:refresh'))
+              }}
+              className="text-gray-400 hover:text-red-600"
+              title="Delete"
+            >
+              <i className="fas fa-trash"></i>
             </button>
           </div>
         </div>
@@ -258,6 +210,19 @@ export default function ChallengesPage() {
     )
   }
 
+  const loadChallenges = async () => {
+    const res = await fetch('/api/challenges', { cache: 'no-store' })
+    const data: Challenge[] = await res.json()
+    setChallenges(data)
+  }
+
+  useEffect(() => {
+    const onRefresh = () => loadChallenges()
+    document.addEventListener('challenges:refresh', onRefresh as EventListener)
+    loadChallenges()
+    return () => document.removeEventListener('challenges:refresh', onRefresh as EventListener)
+  }, [])
+
   return (
     <MainLayout>
       <div className="space-y-6">
@@ -291,7 +256,7 @@ export default function ChallengesPage() {
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold">
-                {Math.round(challenges.reduce((sum, c) => sum + c.progress, 0) / challenges.length)}%
+                {challenges.length === 0 ? 0 : Math.round(challenges.reduce((sum, c) => sum + c.progress, 0) / challenges.length)}%
               </div>
               <div className="text-purple-100 text-sm">Avg Progress</div>
             </div>

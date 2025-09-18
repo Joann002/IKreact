@@ -6,7 +6,10 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate dev --name init",
+    "prisma:studio": "prisma studio"
   },
   "dependencies": {
     "@fullcalendar/core": "^6.1.19",
@@ -15,7 +18,8 @@
     "@fullcalendar/react": "^6.1.10",
     "@fullcalendar/timegrid": "^6.1.10",
     "@heroicons/react": "^2.0.18",
-    "apexcharts": "^3.54.0",
+    "@prisma/client": "^5.22.0",
+    "apexcharts": "^5.3.5",
     "clsx": "^2.0.0",
     "next": "^14.2.32",
     "react": "^18",
@@ -32,6 +36,7 @@
     "eslint": "^8",
     "eslint-config-next": "14.0.4",
     "postcss": "^8",
+    "prisma": "^5.22.0",
     "tailwindcss": "^3.3.0",
     "typescript": "^5"
   }
